@@ -69,7 +69,22 @@ class Library:
                 results.append(book)
         return results
 
-    def register_member(self, member_id, name):
+    def sort_books_by_title(self):
+        return sorted(self.books.values(), key=lambda b: b.title.lower())
+
+    def sort_books_by_author(self):
+        return sorted(self.books.values(), key=lambda b: b.author.lower())
+
+    def sort_books_by_year_asc(self):
+        return sorted(self.books.values(), key=lambda b: int(b.year) if str(b.year).isdigit() else 0)
+
+    def sort_books_by_year_desc(self):
+        return sorted(self.books.values(), key=lambda b: int(b.year) if str(b.year).isdigit() else 0, reverse=True)
+
+    def sort_books_by_category(self):
+        return sorted(self.books.values(), key=lambda b: b.category.lower())
+
+    def register_member(self, member_id, name, phone="", email=""):
         member_id = str(member_id)
         if not member_id or not name:
             raise ValueError("Member ID and Name are required!")
@@ -77,6 +92,11 @@ class Library:
             raise ValueError("Member ID already exists!")
 
         new_member = Member(member_id, name)
+        if hasattr(new_member, 'phone'):
+            new_member.phone = phone
+        if hasattr(new_member, 'email'):
+            new_member.email = email
+            
         self.members[member_id] = new_member
         self.save_members()
 
@@ -116,8 +136,37 @@ class Library:
         if not book.is_borrowed:
             raise ValueError("Book was not borrowed!")
 
+        if hasattr(member, 'borrowed_books') and book_id not in member.borrowed_books:
+            raise ValueError("This member did not borrow this book!")
+
         book.is_borrowed = False
         member.return_book(book_id)
 
         self.save_books()
         self.save_members()
+
+    def get_statistics(self):
+        total_books = len(self.books)
+        borrowed_books = sum(1 for book in self.books.values() if book.is_borrowed)
+        available_books = total_books - borrowed_books
+        total_members = len(self.members)
+
+        category_counts = {}
+        for book in self.books.values():
+            cat = book.category.strip() if book.category else "Uncategorized"
+            category_counts[cat] = category_counts.get(cat, 0) + 1
+
+        if category_counts:
+            top_category = max(category_counts, key=category_counts.get)
+            top_count = category_counts[top_category]
+            top_category_text = f"{top_category} ({top_count} books)"
+        else:
+            top_category_text = "N/A"
+
+        return {
+            "total_books": total_books,
+            "available_books": available_books,
+            "borrowed_books": borrowed_books,
+            "total_members": total_members,
+            "top_category": top_category_text
+        }
