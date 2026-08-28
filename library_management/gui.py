@@ -8,29 +8,12 @@ class LibraryApp:
         self.window.title("Library Management System")
         self.window.geometry("1000x740")
 
-        style = ttk.Style()
-        style.theme_use('clam')
+        self.is_dark = False
 
-        bg_color = "darkslategray"
-        fg_color = "white"
-        btn_color = "teal"
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
 
-        style.configure(".", background=bg_color, foreground=fg_color)
-        style.configure("TLabel", background=bg_color, foreground=fg_color)
-        style.configure("TButton", background=btn_color, foreground=fg_color, font=("Arial", 9, "bold"))
-        style.configure("TLabelframe", background=bg_color, foreground=fg_color)
-        style.configure("TLabelframe.Label", background=bg_color, foreground=fg_color)
-        style.configure("TNotebook", background=bg_color)
-        style.configure("TNotebook.Tab", background=btn_color, foreground=fg_color)
-        style.map("TNotebook.Tab", background=[("selected", "darkcyan")])
-
-        style.configure("TEntry", foreground="black", fieldbackground="white")
-        style.map("TEntry", foreground=[("focus", "black")], fieldbackground=[("focus", "white")])
-
-        style.configure("Treeview", background="white", fieldbackground="white", foreground="black")
-        style.configure("Treeview.Heading", background=btn_color, foreground=fg_color)
-
-        self.window.configure(bg=bg_color)
+        self.apply_theme()
 
         self.library = Library()
 
@@ -39,7 +22,53 @@ class LibraryApp:
         self.refresh_members()
         self.refresh_stats()
 
+    def apply_theme(self):
+        if self.is_dark:
+            self.bg_color = "black"
+            self.fg_color = "white"
+            self.btn_color = "gray"
+            self.entry_bg = "darkgray"
+            self.tree_bg = "black"
+            self.tree_fg = "white"
+            self.mode_text = "Light Mode"
+        else:
+            self.bg_color = "darkslategray"
+            self.fg_color = "white"
+            self.btn_color = "teal"
+            self.entry_bg = "white"
+            self.tree_bg = "white"
+            self.tree_fg = "black"
+            self.mode_text = "Dark Mode"
+
+        self.style.configure(".", background=self.bg_color, foreground=self.fg_color)
+        self.style.configure("TLabel", background=self.bg_color, foreground=self.fg_color)
+        self.style.configure("TButton", background=self.btn_color, foreground=self.fg_color, font=("Arial", 9, "bold"))
+        self.style.configure("TLabelframe", background=self.bg_color, foreground=self.fg_color)
+        self.style.configure("TLabelframe.Label", background=self.bg_color, foreground=self.fg_color)
+        self.style.configure("TNotebook", background=self.bg_color)
+        self.style.configure("TNotebook.Tab", background=self.btn_color, foreground=self.fg_color)
+        self.style.map("TNotebook.Tab", background=[("selected", "darkcyan" if not self.is_dark else "darkgray")])
+
+        self.style.configure("TEntry", foreground="black", fieldbackground=self.entry_bg)
+        self.style.map("TEntry", foreground=[("focus", "black")], fieldbackground=[("focus", self.entry_bg)])
+
+        self.style.configure("Treeview", background=self.tree_bg, fieldbackground=self.tree_bg, foreground=self.tree_fg)
+        self.style.configure("Treeview.Heading", background=self.btn_color, foreground=self.fg_color)
+
+        self.window.configure(bg=self.bg_color)
+
+    def toggle_dark_mode(self):
+        self.is_dark = not self.is_dark
+        self.apply_theme()
+        self.mode_btn.config(text=self.mode_text)
+
     def create_widgets(self):
+        top_frame = ttk.Frame(self.window)
+        top_frame.pack(fill="x", padx=10, pady=5)
+
+        self.mode_btn = ttk.Button(top_frame, text=self.mode_text, command=self.toggle_dark_mode)
+        self.mode_btn.pack(side="right", padx=5, pady=5)
+
         notebook = ttk.Notebook(self.window)
         notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -201,8 +230,8 @@ class LibraryApp:
         form_frame.pack(fill="x", padx=10, pady=20)
 
         ttk.Label(form_frame, text="Member ID:").grid(row=0, column=0, padx=10, pady=10)
-        self.op_member_id_entry = ttk.Entry(form_frame)
-        self.op_member_id_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.operator_member_id_entry = ttk.Entry(form_frame)
+        self.operator_member_id_entry.grid(row=0, column=1, padx=10, pady=10)
 
         ttk.Label(form_frame, text="Book ID:").grid(row=1, column=0, padx=10, pady=10)
         self.op_book_id_entry = ttk.Entry(form_frame)
