@@ -23,6 +23,10 @@ class LibraryApp:
         style.configure("TNotebook", background=bg_color)
         style.configure("TNotebook.Tab", background=btn_color, foreground=fg_color)
         style.map("TNotebook.Tab", background=[("selected", "blue")])
+
+        style.configure("TEntry", foreground="black", fieldbackground="white")
+        style.map("TEntry", foreground=[("focus", "black")], fieldbackground=[("focus", "white")])
+
         style.configure("Treeview", background="white", fieldbackground="white", foreground="black")
         style.configure("Treeview.Heading", background=btn_color, foreground=fg_color)
 
