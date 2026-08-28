@@ -12,6 +12,6 @@ def validate_not_empty(value, field_name):
 def validate_id(id_value, entity_type = "ID"):
   """Ensures that ID is provided and formatted properly"""
   clean_id = Validator.validate_not_empty(id_value, entity_type)
-        if len(clean_id) < 1:
-            raise ValueError(f"Invalid {entity_type}! It must contain at least 1 character!")
+  if len(clean_id) < 1:
+        raise ValueError(f"Invalid {entity_type}! It must contain at least 1 character!")
         return clean_id
