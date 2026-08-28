@@ -2,12 +2,31 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from library import Library
 
-
 class LibraryApp:
     def __init__(self, window):
         self.window = window
         self.window.title("Library Management System")
         self.window.geometry("900x650")
+
+        style = ttk.Style()
+        style.theme_use('clam')
+
+        bg_color = "navy"
+        fg_color = "white"
+        btn_color = "steelblue"
+
+        style.configure(".", background=bg_color, foreground=fg_color)
+        style.configure("TLabel", background=bg_color, foreground=fg_color)
+        style.configure("TButton", background=btn_color, foreground=fg_color, font=("Arial", 9, "bold"))
+        style.configure("TLabelframe", background=bg_color, foreground=fg_color)
+        style.configure("TLabelframe.Label", background=bg_color, foreground=fg_color)
+        style.configure("TNotebook", background=bg_color)
+        style.configure("TNotebook.Tab", background=btn_color, foreground=fg_color)
+        style.map("TNotebook.Tab", background=[("selected", "blue")])
+        style.configure("Treeview", background="white", fieldbackground="white", foreground="black")
+        style.configure("Treeview.Heading", background=btn_color, foreground=fg_color)
+
+        self.window.configure(bg=bg_color)
 
         self.library = Library()
 
