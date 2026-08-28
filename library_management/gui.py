@@ -6,14 +6,14 @@ class LibraryApp:
     def __init__(self, window):
         self.window = window
         self.window.title("Library Management System")
-        self.window.geometry("900x650")
+        self.window.geometry("1000x740")
 
         style = ttk.Style()
         style.theme_use('clam')
 
-        bg_color = "navy"
+        bg_color = "darkslategray"
         fg_color = "white"
-        btn_color = "steelblue"
+        btn_color = "teal"
 
         style.configure(".", background=bg_color, foreground=fg_color)
         style.configure("TLabel", background=bg_color, foreground=fg_color)
@@ -22,7 +22,7 @@ class LibraryApp:
         style.configure("TLabelframe.Label", background=bg_color, foreground=fg_color)
         style.configure("TNotebook", background=bg_color)
         style.configure("TNotebook.Tab", background=btn_color, foreground=fg_color)
-        style.map("TNotebook.Tab", background=[("selected", "blue")])
+        style.map("TNotebook.Tab", background=[("selected", "darkcyan")])
 
         style.configure("TEntry", foreground="black", fieldbackground="white")
         style.map("TEntry", foreground=[("focus", "black")], fieldbackground=[("focus", "white")])
@@ -37,6 +37,7 @@ class LibraryApp:
         self.create_widgets()
         self.refresh_books()
         self.refresh_members()
+        self.refresh_stats()
 
     def create_widgets(self):
         notebook = ttk.Notebook(self.window)
@@ -51,12 +52,16 @@ class LibraryApp:
         self.borrow_tab = ttk.Frame(notebook)
         notebook.add(self.borrow_tab, text="Borrow / Return")
 
+        self.stats_tab = ttk.Frame(notebook)
+        notebook.add(self.stats_tab, text="Statistics")
+
         self.setup_books_tab()
         self.setup_members_tab()
         self.setup_borrow_tab()
+        self.setup_stats_tab()
 
     def setup_books_tab(self):
-        form_frame = ttk.LabelFrame(self.books_tab, text="Add / Remove Book")
+        form_frame = ttk.LabelFrame(self.books_tab, text="Add / Edit / Remove Book")
         form_frame.pack(fill="x", padx=10, pady=5)
 
         ttk.Label(form_frame, text="Book ID:").grid(row=0, column=0, padx=5, pady=5)
@@ -79,11 +84,17 @@ class LibraryApp:
         self.book_category_entry = ttk.Entry(form_frame, width=15)
         self.book_category_entry.grid(row=1, column=3, padx=5, pady=5)
 
-        button = ttk.Button(form_frame, text="Add Book", command=self.add_book)
-        button.grid(row=1, column=4, padx=5, pady=5)
+        add_button = ttk.Button(form_frame, text="Add Book", command=self.add_book)
+        add_button.grid(row=1, column=4, padx=5, pady=5)
+
+        edit_button = ttk.Button(form_frame, text="Edit Selected", command=self.load_selected_book)
+        edit_button.grid(row=1, column=5, padx=5, pady=5)
+
+        update_button = ttk.Button(form_frame, text="Update Book", command=self.update_book)
+        update_button.grid(row=1, column=6, padx=5, pady=5)
 
         remove_button = ttk.Button(form_frame, text="Remove Selected", command=self.remove_book)
-        remove_button.grid(row=1, column=5, padx=5, pady=5)
+        remove_button.grid(row=1, column=7, padx=5, pady=5)
 
         search_frame = ttk.LabelFrame(self.books_tab, text="Search Books")
         search_frame.pack(fill="x", padx=10, pady=5)
@@ -97,6 +108,24 @@ class LibraryApp:
 
         reset_button = ttk.Button(search_frame, text="Reset", command=self.refresh_books)
         reset_button.pack(side="left", padx=5, pady=5)
+
+        sort_frame = ttk.LabelFrame(self.books_tab, text="Sort Books")
+        sort_frame.pack(fill="x", padx=10, pady=5)
+
+        sort_title_btn = ttk.Button(sort_frame, text="Title (A-Z)", command=self.sort_by_title)
+        sort_title_btn.pack(side="left", padx=5, pady=5)
+
+        sort_author_btn = ttk.Button(sort_frame, text="Author (A-Z)", command=self.sort_by_author)
+        sort_author_btn.pack(side="left", padx=5, pady=5)
+
+        sort_year_asc_btn = ttk.Button(sort_frame, text="Year (Asc)", command=self.sort_by_year_asc)
+        sort_year_asc_btn.pack(side="left", padx=5, pady=5)
+
+        sort_year_desc_btn = ttk.Button(sort_frame, text="Year (Desc)", command=self.sort_by_year_desc)
+        sort_year_desc_btn.pack(side="left", padx=5, pady=5)
+
+        sort_category_btn = ttk.Button(sort_frame, text="Category (A-Z)", command=self.sort_by_category)
+        sort_category_btn.pack(side="left", padx=5, pady=5)
 
         self.books_tree = ttk.Treeview(
             self.books_tab, 
@@ -120,24 +149,51 @@ class LibraryApp:
         self.books_tree.pack(fill="both", expand=True, padx=10, pady=5)
 
     def setup_members_tab(self):
-        form_frame = ttk.LabelFrame(self.members_tab, text="Register Member")
+        form_frame = ttk.LabelFrame(self.members_tab, text="Register / Edit Member")
         form_frame.pack(fill="x", padx=10, pady=5)
 
         ttk.Label(form_frame, text="Member ID:").grid(row=0, column=0, padx=5, pady=5)
-        self.member_id_entry = ttk.Entry(form_frame)
+        self.member_id_entry = ttk.Entry(form_frame, width=10)
         self.member_id_entry.grid(row=0, column=1, padx=5, pady=5)
 
         ttk.Label(form_frame, text="Name:").grid(row=0, column=2, padx=5, pady=5)
-        self.member_name_entry = ttk.Entry(form_frame)
+        self.member_name_entry = ttk.Entry(form_frame, width=12)
         self.member_name_entry.grid(row=0, column=3, padx=5, pady=5)
 
-        register_button = ttk.Button(form_frame, text="Register Member", command=self.register_member)
-        register_button.grid(row=0, column=4, padx=5, pady=5)
+        ttk.Label(form_frame, text="Phone:").grid(row=0, column=4, padx=5, pady=5)
+        self.member_phone_entry = ttk.Entry(form_frame, width=12)
+        self.member_phone_entry.grid(row=0, column=5, padx=5, pady=5)
 
-        self.members_tree = ttk.Treeview(self.members_tab, columns=("ID", "Name", "Borrowed Books"), show="headings")
+        ttk.Label(form_frame, text="Email:").grid(row=0, column=6, padx=5, pady=5)
+        self.member_email_entry = ttk.Entry(form_frame, width=15)
+        self.member_email_entry.grid(row=0, column=7, padx=5, pady=5)
+
+        register_button = ttk.Button(form_frame, text="Register", command=self.register_member)
+        register_button.grid(row=1, column=3, padx=5, pady=5)
+
+        edit_button = ttk.Button(form_frame, text="Edit Selected", command=self.load_selected_member)
+        edit_button.grid(row=1, column=4, padx=5, pady=5)
+
+        update_button = ttk.Button(form_frame, text="Update Member", command=self.update_member)
+        update_button.grid(row=1, column=5, padx=5, pady=5)
+
+        self.members_tree = ttk.Treeview(
+            self.members_tab, 
+            columns=("ID", "Name", "Phone", "Email", "Borrowed Books"), 
+            show="headings"
+        )
         self.members_tree.heading("ID", text="Member ID")
         self.members_tree.heading("Name", text="Name")
+        self.members_tree.heading("Phone", text="Phone")
+        self.members_tree.heading("Email", text="Email")
         self.members_tree.heading("Borrowed Books", text="Borrowed Books")
+
+        self.members_tree.column("ID", width=70)
+        self.members_tree.column("Name", width=120)
+        self.members_tree.column("Phone", width=100)
+        self.members_tree.column("Email", width=140)
+        self.members_tree.column("Borrowed Books", width=150)
+
         self.members_tree.pack(fill="both", expand=True, padx=10, pady=5)
 
     def setup_borrow_tab(self):
@@ -158,6 +214,28 @@ class LibraryApp:
         return_button = ttk.Button(form_frame, text="Return Book", command=self.return_book)
         return_button.grid(row=2, column=1, padx=10, pady=10)
 
+    def setup_stats_tab(self):
+        stats_frame = ttk.LabelFrame(self.stats_tab, text="Library Statistics Dashboard")
+        stats_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        self.stat_total_books_lbl = ttk.Label(stats_frame, text="Total books: 0", font=("Arial", 12))
+        self.stat_total_books_lbl.pack(anchor="w", padx=20, pady=10)
+
+        self.stat_available_lbl = ttk.Label(stats_frame, text="Available books: 0", font=("Arial", 12))
+        self.stat_available_lbl.pack(anchor="w", padx=20, pady=10)
+
+        self.stat_borrowed_lbl = ttk.Label(stats_frame, text="Borrowed books: 0", font=("Arial", 12))
+        self.stat_borrowed_lbl.pack(anchor="w", padx=20, pady=10)
+
+        self.stat_members_lbl = ttk.Label(stats_frame, text="Total members: 0", font=("Arial", 12))
+        self.stat_members_lbl.pack(anchor="w", padx=20, pady=10)
+
+        self.stat_top_cat_lbl = ttk.Label(stats_frame, text="Top category: N/A", font=("Arial", 12))
+        self.stat_top_cat_lbl.pack(anchor="w", padx=20, pady=10)
+
+        refresh_stats_btn = ttk.Button(stats_frame, text="Refresh Statistics", command=self.refresh_stats)
+        refresh_stats_btn.pack(anchor="w", padx=20, pady=20)
+
     def refresh_books(self, book_list=None):
         for item in self.books_tree.get_children():
             self.books_tree.delete(item)
@@ -176,26 +254,98 @@ class LibraryApp:
 
         for member in self.library.members.values():
             borrowed = ", ".join(member.borrowed_books) if member.borrowed_books else "None"
-            self.members_tree.insert("", "end", values=(member.member_id, member.name, borrowed))
+            phone = getattr(member, 'phone', 'N/A')
+            email = getattr(member, 'email', 'N/A')
+            self.members_tree.insert("", "end", values=(member.member_id, member.name, phone, email, borrowed))
+
+    def refresh_stats(self):
+        stats = self.library.get_statistics()
+        self.stat_total_books_lbl.config(text=f"Total books: {stats['total_books']}")
+        self.stat_available_lbl.config(text=f"Available books: {stats['available_books']}")
+        self.stat_borrowed_lbl.config(text=f"Borrowed books: {stats['borrowed_books']}")
+        self.stat_members_lbl.config(text=f"Total members: {stats['total_members']}")
+        self.stat_top_cat_lbl.config(text=f"Top category: {stats['top_category']}")
+
+    def clear_book_entries(self):
+        self.book_id_entry.delete(0, tk.END)
+        self.book_title_entry.delete(0, tk.END)
+        self.book_author_entry.delete(0, tk.END)
+        self.book_year_entry.delete(0, tk.END)
+        self.book_category_entry.delete(0, tk.END)
+
+    def clear_member_entries(self):
+        self.member_id_entry.delete(0, tk.END)
+        self.member_name_entry.delete(0, tk.END)
+        self.member_phone_entry.delete(0, tk.END)
+        self.member_email_entry.delete(0, tk.END)
 
     def add_book(self):
-        book_id = self.book_id_entry.get()
-        title = self.book_title_entry.get()
-        author = self.book_author_entry.get()
-        year = self.book_year_entry.get()
-        category = self.book_category_entry.get()
+        book_id = self.book_id_entry.get().strip()
+        title = self.book_title_entry.get().strip()
+        author = self.book_author_entry.get().strip()
+        year = self.book_year_entry.get().strip()
+        category = self.book_category_entry.get().strip()
+
+        if not book_id.isdigit():
+            messagebox.showerror("Error", "Book ID must contain only digits!")
+            return
+
+        if not year.isdigit():
+            messagebox.showerror("Error", "Year must contain only digits!")
+            return
 
         try:
             self.library.add_book(book_id, title, author, year, category)
             messagebox.showinfo("Success", "Book added successfully!")
             self.refresh_books()
-            self.book_id_entry.delete(0, tk.END)
-            self.book_title_entry.delete(0, tk.END)
-            self.book_author_entry.delete(0, tk.END)
-            self.book_year_entry.delete(0, tk.END)
-            self.book_category_entry.delete(0, tk.END)
+            self.refresh_stats()
+            self.clear_book_entries()
         except ValueError as e:
             messagebox.showerror("Error", str(e))
+
+    def load_selected_book(self):
+        selected = self.books_tree.selection()
+        if not selected:
+            messagebox.showwarning("Warning", "Please select a book from the table to edit!")
+            return
+        
+        values = self.books_tree.item(selected[0])["values"]
+        self.clear_book_entries()
+        self.book_id_entry.insert(0, values[0])
+        self.book_title_entry.insert(0, values[1])
+        self.book_author_entry.insert(0, values[2])
+        self.book_year_entry.insert(0, values[3])
+        self.book_category_entry.insert(0, values[4])
+
+    def update_book(self):
+        book_id = str(self.book_id_entry.get()).strip()
+        if not book_id.isdigit():
+            messagebox.showerror("Error", "Book ID must contain only digits!")
+            return
+
+        if book_id not in self.library.books:
+            messagebox.showerror("Error", "Book ID not found in system!")
+            return
+
+        book = self.library.books[book_id]
+        book.title = self.book_title_entry.get().strip()
+        book.author = self.book_author_entry.get().strip()
+        year = self.book_year_entry.get().strip()
+
+        if not year.isdigit():
+            messagebox.showerror("Error", "Year must contain only digits!")
+            return
+
+        book.year = year
+        book.category = self.book_category_entry.get().strip()
+
+        if hasattr(self.library, 'save_data'):
+            self.library.save_data()
+
+        messagebox.showinfo("Success", "Book details updated successfully!")
+        self.refresh_books()
+        self.refresh_stats()
+        self.clear_book_entries()
 
     def remove_book(self):
         selected_item = self.books_tree.selection()
@@ -209,6 +359,7 @@ class LibraryApp:
             self.library.remove_book(str(book_id))
             messagebox.showinfo("Success", "Book removed successfully!")
             self.refresh_books()
+            self.refresh_stats()
         except ValueError as e:
             messagebox.showerror("Error", str(e))
 
@@ -217,42 +368,109 @@ class LibraryApp:
         results = self.library.search_books(query)
         self.refresh_books(results)
 
+    def sort_by_title(self):
+        results = self.library.sort_books_by_title()
+        self.refresh_books(results)
+
+    def sort_by_author(self):
+        results = self.library.sort_books_by_author()
+        self.refresh_books(results)
+
+    def sort_by_year_asc(self):
+        results = self.library.sort_books_by_year_asc()
+        self.refresh_books(results)
+
+    def sort_by_year_desc(self):
+        results = self.library.sort_books_by_year_desc()
+        self.refresh_books(results)
+
+    def sort_by_category(self):
+        results = self.library.sort_books_by_category()
+        self.refresh_books(results)
+
     def register_member(self):
-        member_id = self.member_id_entry.get()
-        name = self.member_name_entry.get()
+        member_id = self.member_id_entry.get().strip()
+        name = self.member_name_entry.get().strip()
+        phone = self.member_phone_entry.get().strip()
+        email = self.member_email_entry.get().strip()
+
+        if not member_id.isdigit():
+            messagebox.showerror("Error", "Member ID must contain only digits!")
+            return
 
         try:
-            self.library.register_member(member_id, name)
+            try:
+                self.library.register_member(member_id, name, phone, email)
+            except TypeError:
+                self.library.register_member(member_id, name)
+                
             messagebox.showinfo("Success", "Member registered successfully!")
             self.refresh_members()
-            self.member_id_entry.delete(0, tk.END)
-            self.member_name_entry.delete(0, tk.END)
+            self.refresh_stats()
+            self.clear_member_entries()
         except ValueError as e:
             messagebox.showerror("Error", str(e))
 
+    def load_selected_member(self):
+        selected = self.members_tree.selection()
+        if not selected:
+            messagebox.showwarning("Warning", "Please select a member from the table to edit!")
+            return
+
+        values = self.members_tree.item(selected[0])["values"]
+        self.clear_member_entries()
+        self.member_id_entry.insert(0, values[0])
+        self.member_name_entry.insert(0, values[1])
+        self.member_phone_entry.insert(0, values[2])
+        self.member_email_entry.insert(0, values[3])
+
+    def update_member(self):
+        member_id = str(self.member_id_entry.get()).strip()
+        if not member_id.isdigit():
+            messagebox.showerror("Error", "Member ID must contain only digits!")
+            return
+
+        if member_id not in self.library.members:
+            messagebox.showerror("Error", "Member ID not found in system!")
+            return
+
+        member = self.library.members[member_id]
+        member.name = self.member_name_entry.get().strip()
+        setattr(member, 'phone', self.member_phone_entry.get().strip())
+        setattr(member, 'email', self.member_email_entry.get().strip())
+
+        if hasattr(self.library, 'save_data'):
+            self.library.save_data()
+
+        messagebox.showinfo("Success", "Member details updated successfully!")
+        self.refresh_members()
+        self.clear_member_entries()
+
     def borrow_book(self):
-        member_id = self.op_member_id_entry.get()
-        book_id = self.op_book_id_entry.get()
+        member_id = self.op_member_id_entry.get().strip()
+        book_id = self.op_book_id_entry.get().strip()
 
         try:
             self.library.borrow_book(member_id, book_id)
             messagebox.showinfo("Success", "Book borrowed successfully!")
             self.refresh_books()
             self.refresh_members()
+            self.refresh_stats()
             self.op_member_id_entry.delete(0, tk.END)
             self.op_book_id_entry.delete(0, tk.END)
         except ValueError as e:
             messagebox.showerror("Error", str(e))
 
     def return_book(self):
-        member_id = self.op_member_id_entry.get()
-        book_id = self.op_book_id_entry.get()
+        member_id = self.op_member_id_entry.get().strip()
+        book_id = self.op_book_id_entry.get().strip()
 
         try:
             self.library.return_book(member_id, book_id)
             messagebox.showinfo("Success", "Book returned successfully!")
             self.refresh_books()
             self.refresh_members()
+            self.refresh_stats()
             self.op_member_id_entry.delete(0, tk.END)
             self.op_book_id_entry.delete(0, tk.END)
         except ValueError as e:
