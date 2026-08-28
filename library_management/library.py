@@ -1,145 +1,123 @@
 from models import Book, Member
-from file_manager import FileManager
-from validators import Validator
-
 
 class Library:
-    """Class to manage library operations, books, and members."""
-
     def __init__(self, books_file="data/books.txt", members_file="data/members.txt"):
         self.books_file = books_file
         self.members_file = members_file
         self.books = {}
         self.members = {}
+
         self.load_data()
 
     def load_data(self):
-        """Loads books and members from text files into memory."""
-        self.books.clear()
-        self.members.clear()
+        try:
+            with open(self.books_file, "r", encoding="utf-8") as file:
+                for line in file:
+                    book = Book.from_file_string(line)
+                    if book:
+                        self.books[book.book_id] = book
+        except FileNotFoundError:
+            pass
 
-        book_lines = FileManager.load_from_text(self.books_file)
-        for line in book_lines:
-            parts = line.split("|")
-            if len(parts) == 4:
-                book_id, title, author, is_borrowed = parts
-                self.books[book_id] = Book(
-                    book_id=book_id,
-                    title=title,
-                    author=author,
-                    is_borrowed=(is_borrowed.lower() == "true")
-                )
+        try:
+            with open(self.members_file, "r", encoding="utf-8") as file:
+                for line in file:
+                    member = Member.from_file_string(line)
+                    if member:
+                        self.members[member.member_id] = member
+        except FileNotFoundError:
+            pass
 
-        member_lines = FileManager.load_from_text(self.members_file)
-        for line in member_lines:
-            parts = line.split("|")
-            if len(parts) >= 2:
-                member_id = parts[0]
-                name = parts[1]
-                borrowed_books = parts[2].split(",") if len(parts) > 2 and parts[2] else []
-                self.members[member_id] = Member(
-                    member_id=member_id,
-                    name=name,
-                    borrowed_books=borrowed_books
-                )
+    def save_books(self):
+        with open(self.books_file, "w", encoding="utf-8") as file:
+            for book in self.books.values():
+                file.write(book.to_file_string())
 
-    def save_data(self):
-        """Saves current memory state of books and members back to text files."""
-        book_lines = [
-            f"{book.book_id}|{book.title}|{book.author}|{book.is_borrowed}"
-            for book in self.books.values()
-        ]
-        FileManager.save_to_text(self.books_file, book_lines)
+    def save_members(self):
+        with open(self.members_file, "w", encoding="utf-8") as file:
+            for member in self.members.values():
+                file.write(member.to_file_string())
 
-        member_lines = [
-            f"{member.member_id}|{member.name}|{','.join(member.borrowed_books)}"
-            for member in self.members.values()
-        ]
-        FileManager.save_to_text(self.members_file, member_lines)
+    def add_book(self, book_id, title, author, year="", category=""):
+        if not book_id or not title or not author:
+            raise ValueError("Book ID, Title, and Author are required!")
+        if str(book_id) in self.books:
+            raise ValueError("Book ID already exists!")
 
-    def add_book(self, book_id, title, author):
-        """Adds a new book to the library."""
-        book_id = Validator.validate_id(book_id, "Book ID")
-        title = Validator.validate_not_empty(title, "Title")
-        author = Validator.validate_not_empty(author, "Author")
-
-        if book_id in self.books:
-            raise ValueError(f"Book with ID '{book_id}' already exists!")
-
-        new_book = Book(book_id, title, author)
-        self.books[book_id] = new_book
-        self.save_data()
-        return new_book
+        new_book = Book(book_id, title, author, year, category)
+        self.books[str(book_id)] = new_book
+        self.save_books()
 
     def remove_book(self, book_id):
-        """Removes a book from the library by ID."""
-        book_id = Validator.validate_id(book_id, "Book ID")
+        book_id = str(book_id)
         if book_id not in self.books:
-            raise ValueError(f"Book with ID '{book_id}' not found!")
-
+            raise ValueError("Book not found!")
         if self.books[book_id].is_borrowed:
-            raise ValueError("Cannot remove a book that is currently borrowed!")
+            raise ValueError("Cannot remove a borrowed book!")
 
         del self.books[book_id]
-        self.save_data()
+        self.save_books()
+
+    def search_books(self, query):
+        query = query.lower()
+        results = []
+        for book in self.books.values():
+            if (query in book.title.lower() or 
+                query in book.author.lower() or 
+                query in book.book_id.lower() or 
+                query in book.category.lower()):
+                results.append(book)
+        return results
 
     def register_member(self, member_id, name):
-        """Registers a new member to the library."""
-        member_id = Validator.validate_id(member_id, "Member ID")
-        name = Validator.validate_not_empty(name, "Member Name")
-
+        member_id = str(member_id)
+        if not member_id or not name:
+            raise ValueError("Member ID and Name are required!")
         if member_id in self.members:
-            raise ValueError(f"Member with ID '{member_id}' already exists!")
+            raise ValueError("Member ID already exists!")
 
         new_member = Member(member_id, name)
         self.members[member_id] = new_member
-        self.save_data()
-        return new_member
+        self.save_members()
 
     def borrow_book(self, member_id, book_id):
-        """Borrows a book for a member."""
-        member_id = Validator.validate_id(member_id, "Member ID")
-        book_id = Validator.validate_id(book_id, "Book ID")
+        member_id = str(member_id)
+        book_id = str(book_id)
 
         if member_id not in self.members:
-            raise ValueError(f"Member with ID '{member_id}' not found!")
+            raise ValueError("Member not found!")
         if book_id not in self.books:
-            raise ValueError(f"Book with ID '{book_id}' not found!")
+            raise ValueError("Book not found!")
 
         book = self.books[book_id]
         member = self.members[member_id]
 
         if book.is_borrowed:
-            raise ValueError(f"Book '{book.title}' is already borrowed!")
+            raise ValueError("Book is already borrowed!")
 
         book.is_borrowed = True
         member.borrow_book(book_id)
-        self.save_data()
+
+        self.save_books()
+        self.save_members()
 
     def return_book(self, member_id, book_id):
-        """Returns a borrowed book back to the library."""
-        member_id = Validator.validate_id(member_id, "Member ID")
-        book_id = Validator.validate_id(book_id, "Book ID")
+        member_id = str(member_id)
+        book_id = str(book_id)
 
         if member_id not in self.members:
-            raise ValueError(f"Member with ID '{member_id}' not found!")
+            raise ValueError("Member not found!")
         if book_id not in self.books:
-            raise ValueError(f"Book with ID '{book_id}' not found!")
+            raise ValueError("Book not found!")
 
         book = self.books[book_id]
         member = self.members[member_id]
 
-        if book_id not in member.borrowed_books:
-            raise ValueError(f"Member '{member.name}' has not borrowed this book!")
+        if not book.is_borrowed:
+            raise ValueError("Book was not borrowed!")
 
         book.is_borrowed = False
         member.return_book(book_id)
-        self.save_data()
 
-    def search_books(self, query):
-        """Searches books by title or author."""
-        query = query.lower().strip()
-        return [
-            book for book in self.books.values()
-            if query in book.title.lower() or query in book.author.lower()
-        ]
+        self.save_books()
+        self.save_members()
