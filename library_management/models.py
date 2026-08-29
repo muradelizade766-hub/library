@@ -21,12 +21,12 @@ class Book:
 
 
 class Member:
-    def __init__(self, member_id, name, borrowed_books=None, phone="", email=""):
+    def __init__(self, member_id, name, phone="", email="", borrowed_books=None):
         self.member_id = str(member_id)
         self.name = name
-        self.borrowed_books = borrowed_books if borrowed_books is not None else []
         self.phone = phone
         self.email = email
+        self.borrowed_books = borrowed_books if borrowed_books is not None else []
 
     def borrow_book(self, book_id):
         if str(book_id) not in self.borrowed_books:
@@ -47,5 +47,5 @@ class Member:
             borrowed = parts[2].split(",") if len(parts) > 2 and parts[2] else []
             phone = parts[3] if len(parts) > 3 else ""
             email = parts[4] if len(parts) > 4 else ""
-            return cls(parts[0], parts[1], borrowed, phone, email)
+            return cls(parts[0], parts[1], phone, email, borrowed)
         return None
