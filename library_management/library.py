@@ -91,11 +91,14 @@ class Library:
         if member_id in self.members:
             raise ValueError("Member ID already exists!")
 
-        new_member = Member(member_id, name)
-        if hasattr(new_member, 'phone'):
-            new_member.phone = phone
-        if hasattr(new_member, 'email'):
-            new_member.email = email
+        try:
+            new_member = Member(member_id, name, phone, email)
+        except TypeError:
+            new_member = Member(member_id, name)
+            if hasattr(new_member, 'phone'):
+                new_member.phone = phone
+            if hasattr(new_member, 'email'):
+                new_member.email = email
             
         self.members[member_id] = new_member
         self.save_members()
