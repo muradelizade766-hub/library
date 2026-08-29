@@ -21,10 +21,12 @@ class Book:
 
 
 class Member:
-    def __init__(self, member_id, name, borrowed_books=None):
+    def __init__(self, member_id, name, borrowed_books=None, phone="", email=""):
         self.member_id = str(member_id)
         self.name = name
         self.borrowed_books = borrowed_books if borrowed_books is not None else []
+        self.phone = phone
+        self.email = email
 
     def borrow_book(self, book_id):
         if str(book_id) not in self.borrowed_books:
@@ -36,12 +38,14 @@ class Member:
 
     def to_file_string(self):
         books_str = ",".join(self.borrowed_books)
-        return f"{self.member_id}|{self.name}|{books_str}\n"
+        return f"{self.member_id}|{self.name}|{books_str}|{self.phone}|{self.email}\n"
 
     @classmethod
     def from_file_string(cls, file_string):
         parts = file_string.strip().split("|")
         if len(parts) >= 2:
             borrowed = parts[2].split(",") if len(parts) > 2 and parts[2] else []
-            return cls(parts[0], parts[1], borrowed)
+            phone = parts[3] if len(parts) > 3 else ""
+            email = parts[4] if len(parts) > 4 else ""
+            return cls(parts[0], parts[1], borrowed, phone, email)
         return None
