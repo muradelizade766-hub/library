@@ -6,7 +6,6 @@ class Library:
         self.members_file = members_file
         self.books = {}
         self.members = {}
-
         self.load_data()
 
     def load_data(self):
@@ -91,16 +90,20 @@ class Library:
         if member_id in self.members:
             raise ValueError("Member ID already exists!")
 
-        try:
-            new_member = Member(member_id, name, phone, email)
-        except TypeError:
-            new_member = Member(member_id, name)
-            if hasattr(new_member, 'phone'):
-                new_member.phone = phone
-            if hasattr(new_member, 'email'):
-                new_member.email = email
-            
+        new_member = Member(member_id, name, phone, email)
         self.members[member_id] = new_member
+        self.save_members()
+
+    def remove_member(self, member_id):
+        member_id = str(member_id)
+        if member_id not in self.members:
+            raise ValueError("Member not found!")
+        
+        member = self.members[member_id]
+        if hasattr(member, 'borrowed_books') and member.borrowed_books:
+            raise ValueError("Cannot remove a member who has borrowed books!")
+
+        del self.members[member_id]
         self.save_members()
 
     def borrow_book(self, member_id, book_id):
