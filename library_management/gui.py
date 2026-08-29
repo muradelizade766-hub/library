@@ -178,7 +178,7 @@ class LibraryApp:
         self.books_tree.pack(fill="both", expand=True, padx=10, pady=5)
 
     def setup_members_tab(self):
-        form_frame = ttk.LabelFrame(self.members_tab, text="Register / Edit Member")
+        form_frame = ttk.LabelFrame(self.members_tab, text="Register / Edit / Remove Member")
         form_frame.pack(fill="x", padx=10, pady=5)
 
         ttk.Label(form_frame, text="Member ID:").grid(row=0, column=0, padx=5, pady=5)
@@ -198,13 +198,16 @@ class LibraryApp:
         self.member_email_entry.grid(row=0, column=7, padx=5, pady=5)
 
         register_button = ttk.Button(form_frame, text="Register", command=self.register_member)
-        register_button.grid(row=1, column=3, padx=5, pady=5)
+        register_button.grid(row=1, column=2, padx=5, pady=5)
 
         edit_button = ttk.Button(form_frame, text="Edit Selected", command=self.load_selected_member)
-        edit_button.grid(row=1, column=4, padx=5, pady=5)
+        edit_button.grid(row=1, column=3, padx=5, pady=5)
 
         update_button = ttk.Button(form_frame, text="Update Member", command=self.update_member)
-        update_button.grid(row=1, column=5, padx=5, pady=5)
+        update_button.grid(row=1, column=4, padx=5, pady=5)
+
+        remove_member_button = ttk.Button(form_frame, text="Remove Member", command=self.remove_member)
+        remove_member_button.grid(row=1, column=5, padx=5, pady=5)
 
         self.members_tree = ttk.Treeview(
             self.members_tab, 
@@ -474,6 +477,22 @@ class LibraryApp:
         messagebox.showinfo("Success", "Member details updated successfully!")
         self.refresh_members()
         self.clear_member_entries()
+
+    def remove_member(self):
+        selected_item = self.members_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Warning", "Please select a member from the list to remove!")
+            return
+
+        member_id = self.members_tree.item(selected_item[0])["values"][0]
+
+        try:
+            self.library.remove_member(str(member_id))
+            messagebox.showinfo("Success", "Member removed successfully!")
+            self.refresh_members()
+            self.refresh_stats()
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
 
     def borrow_book(self):
         member_id = self.borrow_member_id_entry.get().strip()
