@@ -230,12 +230,12 @@ class LibraryApp:
         form_frame.pack(fill="x", padx=10, pady=20)
 
         ttk.Label(form_frame, text="Member ID:").grid(row=0, column=0, padx=10, pady=10)
-        self.operator_member_id_entry = ttk.Entry(form_frame)
-        self.operator_member_id_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.borrow_member_id_entry = ttk.Entry(form_frame)
+        self.borrow_member_id_entry.grid(row=0, column=1, padx=10, pady=10)
 
         ttk.Label(form_frame, text="Book ID:").grid(row=1, column=0, padx=10, pady=10)
-        self.op_book_id_entry = ttk.Entry(form_frame)
-        self.op_book_id_entry.grid(row=1, column=1, padx=10, pady=10)
+        self.borrow_book_id_entry = ttk.Entry(form_frame)
+        self.borrow_book_id_entry.grid(row=1, column=1, padx=10, pady=10)
 
         borrow_button = ttk.Button(form_frame, text="Borrow Book", command=self.borrow_book)
         borrow_button.grid(row=2, column=0, padx=10, pady=10)
@@ -476,8 +476,8 @@ class LibraryApp:
         self.clear_member_entries()
 
     def borrow_book(self):
-        member_id = self.op_member_id_entry.get().strip()
-        book_id = self.op_book_id_entry.get().strip()
+        member_id = self.borrow_member_id_entry.get().strip()
+        book_id = self.borrow_book_id_entry.get().strip()
 
         try:
             self.library.borrow_book(member_id, book_id)
@@ -485,14 +485,14 @@ class LibraryApp:
             self.refresh_books()
             self.refresh_members()
             self.refresh_stats()
-            self.op_member_id_entry.delete(0, tk.END)
-            self.op_book_id_entry.delete(0, tk.END)
+            self.borrow_member_id_entry.delete(0, tk.END)
+            self.borrow_book_id_entry.delete(0, tk.END)
         except ValueError as e:
             messagebox.showerror("Error", str(e))
 
     def return_book(self):
-        member_id = self.op_member_id_entry.get().strip()
-        book_id = self.op_book_id_entry.get().strip()
+        member_id = self.borrow_member_id_entry.get().strip()
+        book_id = self.borrow_book_id_entry.get().strip()
 
         try:
             self.library.return_book(member_id, book_id)
@@ -500,7 +500,7 @@ class LibraryApp:
             self.refresh_books()
             self.refresh_members()
             self.refresh_stats()
-            self.op_member_id_entry.delete(0, tk.END)
-            self.op_book_id_entry.delete(0, tk.END)
+            self.borrow_member_id_entry.delete(0, tk.END)
+            self.borrow_book_id_entry.delete(0, tk.END)
         except ValueError as e:
             messagebox.showerror("Error", str(e))
