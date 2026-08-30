@@ -66,6 +66,14 @@ class LibraryApp:
         top_frame = ttk.Frame(self.window)
         top_frame.pack(fill="x", padx=10, pady=5)
 
+        welcome_label = ttk.Label(
+            top_frame, 
+            text="Welcome to Library Management System!", 
+            font=("Arial", 12, "bold"), 
+            foreground="gold"
+        )
+        welcome_label.pack(side="left", padx=5, pady=5)
+
         self.mode_btn = ttk.Button(top_frame, text=self.mode_text, command=self.toggle_dark_mode)
         self.mode_btn.pack(side="right", padx=5, pady=5)
 
