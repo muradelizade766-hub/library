@@ -94,6 +94,19 @@ class Library:
         self.members[member_id] = new_member
         self.save_members()
 
+    def search_members(self, query):
+        query = query.lower()
+        results = []
+        for member in self.members.values():
+            phone = getattr(member, 'phone', '')
+            email = getattr(member, 'email', '')
+            if (query in member.member_id.lower() or 
+                query in member.name.lower() or 
+                query in phone.lower() or 
+                query in email.lower()):
+                results.append(member)
+        return results
+
     def remove_member(self, member_id):
         member_id = str(member_id)
         if member_id not in self.members:
