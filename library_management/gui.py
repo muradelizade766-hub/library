@@ -238,6 +238,19 @@ class LibraryApp:
         remove_member_button = ttk.Button(form_frame, text="Remove Member", command=self.remove_member)
         remove_member_button.grid(row=1, column=5, padx=5, pady=5)
 
+        search_frame = ttk.LabelFrame(self.members_tab, text="Search Members")
+        search_frame.pack(fill="x", padx=10, pady=5)
+
+        ttk.Label(search_frame, text="Search:").pack(side="left", padx=5, pady=5)
+        self.member_search_entry = ttk.Entry(search_frame)
+        self.member_search_entry.pack(side="left", fill="x", expand=True, padx=5, pady=5)
+        
+        search_button = ttk.Button(search_frame, text="Search", command=self.search_members)
+        search_button.pack(side="left", padx=5, pady=5)
+
+        reset_button = ttk.Button(search_frame, text="Reset", command=self.refresh_members)
+        reset_button.pack(side="left", padx=5, pady=5)
+
         self.members_tree = ttk.Treeview(
             self.members_tab, 
             columns=("ID", "Name", "Phone", "Email", "Borrowed Books"), 
@@ -309,11 +322,12 @@ class LibraryApp:
                 values=(book.book_id, book.title, book.author, book.year, book.category, status)
             )
 
-    def refresh_members(self):
+    def refresh_members(self, member_list=None):
         for item in self.members_tree.get_children():
             self.members_tree.delete(item)
 
-        for member in self.library.members.values():
+        members = member_list if member_list is not None else self.library.members.values()
+        for member in members:
             borrowed = ", ".join(member.borrowed_books) if member.borrowed_books else "None"
             phone = getattr(member, 'phone', 'N/A')
             email = getattr(member, 'email', 'N/A')
@@ -431,6 +445,11 @@ class LibraryApp:
         query = self.search_entry.get()
         results = self.library.search_books(query)
         self.refresh_books(results)
+
+    def search_members(self):
+        query = self.member_search_entry.get()
+        results = self.library.search_members(query)
+        self.refresh_members(results)
 
     def sort_by_title(self):
         results = self.library.sort_books_by_title()
