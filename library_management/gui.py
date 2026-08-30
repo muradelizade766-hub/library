@@ -152,6 +152,7 @@ class LibraryApp:
         ttk.Label(search_frame, text="Search:").pack(side="left", padx=5, pady=5)
         self.search_entry = ttk.Entry(search_frame)
         self.search_entry.pack(side="left", fill="x", expand=True, padx=5, pady=5)
+        self.search_entry.bind("<Return>", lambda event: self.search_books())
         
         search_button = ttk.Button(search_frame, text="Search", command=self.search_books)
         search_button.pack(side="left", padx=5, pady=5)
@@ -244,6 +245,7 @@ class LibraryApp:
         ttk.Label(search_frame, text="Search:").pack(side="left", padx=5, pady=5)
         self.member_search_entry = ttk.Entry(search_frame)
         self.member_search_entry.pack(side="left", fill="x", expand=True, padx=5, pady=5)
+        self.member_search_entry.bind("<Return>", lambda event: self.search_members())
         
         search_button = ttk.Button(search_frame, text="Search", command=self.search_members)
         search_button.pack(side="left", padx=5, pady=5)
@@ -277,10 +279,12 @@ class LibraryApp:
         ttk.Label(form_frame, text="Member ID:").grid(row=0, column=0, padx=10, pady=10)
         self.borrow_member_id_entry = ttk.Entry(form_frame)
         self.borrow_member_id_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.borrow_member_id_entry.bind("<Return>", lambda event: self.borrow_book())
 
         ttk.Label(form_frame, text="Book ID:").grid(row=1, column=0, padx=10, pady=10)
         self.borrow_book_id_entry = ttk.Entry(form_frame)
         self.borrow_book_id_entry.grid(row=1, column=1, padx=10, pady=10)
+        self.borrow_book_id_entry.bind("<Return>", lambda event: self.borrow_book())
 
         borrow_button = ttk.Button(form_frame, text="Borrow Book", command=self.borrow_book)
         borrow_button.grid(row=2, column=0, padx=10, pady=10)
@@ -290,25 +294,38 @@ class LibraryApp:
 
     def setup_stats_tab(self):
         stats_frame = ttk.LabelFrame(self.stats_tab, text="Library Statistics Dashboard")
-        stats_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        stats_frame.pack(fill="both", expand=True, padx=15, pady=15)
 
-        self.stat_total_books_lbl = ttk.Label(stats_frame, text="Total books: 0", font=("Arial", 12))
-        self.stat_total_books_lbl.pack(anchor="w", padx=20, pady=10)
+        card1 = ttk.LabelFrame(stats_frame, text="Total Books")
+        card1.grid(row=0, column=0, padx=10, pady=10, sticky="nsew", ipadx=20, ipady=15)
+        self.stat_total_books_lbl = ttk.Label(card1, text="0", font=("Arial", 20, "bold"), foreground="cyan")
+        self.stat_total_books_lbl.pack(pady=5)
 
-        self.stat_available_lbl = ttk.Label(stats_frame, text="Available books: 0", font=("Arial", 12))
-        self.stat_available_lbl.pack(anchor="w", padx=20, pady=10)
+        card2 = ttk.LabelFrame(stats_frame, text="Available Books")
+        card2.grid(row=0, column=1, padx=10, pady=10, sticky="nsew", ipadx=20, ipady=15)
+        self.stat_available_lbl = ttk.Label(card2, text="0", font=("Arial", 20, "bold"), foreground="lightgreen")
+        self.stat_available_lbl.pack(pady=5)
 
-        self.stat_borrowed_lbl = ttk.Label(stats_frame, text="Borrowed books: 0", font=("Arial", 12))
-        self.stat_borrowed_lbl.pack(anchor="w", padx=20, pady=10)
+        card3 = ttk.LabelFrame(stats_frame, text="Borrowed Books")
+        card3.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", ipadx=20, ipady=15)
+        self.stat_borrowed_lbl = ttk.Label(card3, text="0", font=("Arial", 20, "bold"), foreground="orange")
+        self.stat_borrowed_lbl.pack(pady=5)
 
-        self.stat_members_lbl = ttk.Label(stats_frame, text="Total members: 0", font=("Arial", 12))
-        self.stat_members_lbl.pack(anchor="w", padx=20, pady=10)
+        card4 = ttk.LabelFrame(stats_frame, text="Total Members")
+        card4.grid(row=1, column=1, padx=10, pady=10, sticky="nsew", ipadx=20, ipady=15)
+        self.stat_members_lbl = ttk.Label(card4, text="0", font=("Arial", 20, "bold"), foreground="yellow")
+        self.stat_members_lbl.pack(pady=5)
 
-        self.stat_top_cat_lbl = ttk.Label(stats_frame, text="Top category: N/A", font=("Arial", 12))
-        self.stat_top_cat_lbl.pack(anchor="w", padx=20, pady=10)
+        card5 = ttk.LabelFrame(stats_frame, text="Top Category")
+        card5.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="nsew", ipadx=20, ipady=10)
+        self.stat_top_cat_lbl = ttk.Label(card5, text="N/A", font=("Arial", 14, "bold"), foreground="magenta")
+        self.stat_top_cat_lbl.pack(pady=5)
+
+        stats_frame.columnconfigure(0, weight=1)
+        stats_frame.columnconfigure(1, weight=1)
 
         refresh_stats_btn = ttk.Button(stats_frame, text="Refresh Statistics", command=self.refresh_stats)
-        refresh_stats_btn.pack(anchor="w", padx=20, pady=20)
+        refresh_stats_btn.grid(row=3, column=0, columnspan=2, pady=15)
 
     def refresh_books(self, book_list=None):
         for item in self.books_tree.get_children():
@@ -335,11 +352,11 @@ class LibraryApp:
 
     def refresh_stats(self):
         stats = self.library.get_statistics()
-        self.stat_total_books_lbl.config(text=f"Total books: {stats['total_books']}")
-        self.stat_available_lbl.config(text=f"Available books: {stats['available_books']}")
-        self.stat_borrowed_lbl.config(text=f"Borrowed books: {stats['borrowed_books']}")
-        self.stat_members_lbl.config(text=f"Total members: {stats['total_members']}")
-        self.stat_top_cat_lbl.config(text=f"Top category: {stats['top_category']}")
+        self.stat_total_books_lbl.config(text=f"{stats['total_books']}")
+        self.stat_available_lbl.config(text=f"{stats['available_books']}")
+        self.stat_borrowed_lbl.config(text=f"{stats['borrowed_books']}")
+        self.stat_members_lbl.config(text=f"{stats['total_members']}")
+        self.stat_top_cat_lbl.config(text=f"{stats['top_category']}")
 
     def clear_book_entries(self):
         self.book_id_entry.delete(0, tk.END)
@@ -442,14 +459,28 @@ class LibraryApp:
             messagebox.showerror("Error", str(e))
 
     def search_books(self):
-        query = self.search_entry.get()
+        query = self.search_entry.get().strip()
+        if not query:
+            messagebox.showwarning("Warning", "Please enter a search query!")
+            return
+            
         results = self.library.search_books(query)
         self.refresh_books(results)
+        
+        if not results:
+            messagebox.showinfo("Result", "No books found matching your search.")
 
     def search_members(self):
-        query = self.member_search_entry.get()
+        query = self.member_search_entry.get().strip()
+        if not query:
+            messagebox.showwarning("Warning", "Please enter a search query!")
+            return
+            
         results = self.library.search_members(query)
         self.refresh_members(results)
+        
+        if not results:
+            messagebox.showinfo("Result", "No members found matching your search.")
 
     def sort_by_title(self):
         results = self.library.sort_books_by_title()
