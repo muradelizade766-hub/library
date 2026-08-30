@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from library import Library
 
 class LibraryApp:
@@ -52,6 +52,9 @@ class LibraryApp:
         self.style.configure("TEntry", foreground="black", fieldbackground=self.entry_bg)
         self.style.map("TEntry", foreground=[("focus", "black")], fieldbackground=[("focus", self.entry_bg)])
 
+        self.style.configure("TCombobox", foreground="black", fieldbackground=self.entry_bg)
+        self.style.map("TCombobox", foreground=[("focus", "black")], fieldbackground=[("focus", self.entry_bg)])
+
         self.style.configure("Treeview", background=self.tree_bg, fieldbackground=self.tree_bg, foreground=self.tree_fg)
         self.style.configure("Treeview.Heading", background=self.btn_color, foreground=self.fg_color)
 
@@ -77,7 +80,7 @@ class LibraryApp:
             top_frame, 
             text="Welcome to Library Management System!", 
             font=("Arial", 12, "bold"), 
-            foreground="gold"
+            foreground="cyan"
         )
         welcome_label.pack(side="top", pady=5)
 
@@ -122,8 +125,14 @@ class LibraryApp:
         self.book_year_entry.grid(row=1, column=1, padx=5, pady=5)
 
         ttk.Label(form_frame, text="Category:").grid(row=1, column=2, padx=5, pady=5)
-        self.book_category_entry = ttk.Entry(form_frame, width=15)
+        self.book_category_entry = ttk.Combobox(
+            form_frame, 
+            width=13, 
+            values=("Fiction", "Non-Fiction", "Science", "History", "Technology", "Fantasy", "Biography", "Other"),
+            state="readonly"
+        )
         self.book_category_entry.grid(row=1, column=3, padx=5, pady=5)
+        self.book_category_entry.bind("<<ComboboxSelected>>", self.on_category_select)
 
         add_button = ttk.Button(form_frame, text="Add Book", command=self.add_book)
         add_button.grid(row=1, column=4, padx=5, pady=5)
@@ -188,6 +197,14 @@ class LibraryApp:
         self.books_tree.column("Status", width=90)
 
         self.books_tree.pack(fill="both", expand=True, padx=10, pady=5)
+
+    def on_category_select(self, event):
+        if self.book_category_entry.get() == "Other":
+            custom_cat = simpledialog.askstring("Custom Category", "Enter new category:")
+            if custom_cat and custom_cat.strip():
+                self.book_category_entry.set(custom_cat.strip())
+            else:
+                self.book_category_entry.set("")
 
     def setup_members_tab(self):
         form_frame = ttk.LabelFrame(self.members_tab, text="Register / Edit / Remove Member")
@@ -315,7 +332,7 @@ class LibraryApp:
         self.book_title_entry.delete(0, tk.END)
         self.book_author_entry.delete(0, tk.END)
         self.book_year_entry.delete(0, tk.END)
-        self.book_category_entry.delete(0, tk.END)
+        self.book_category_entry.set("")
 
     def clear_member_entries(self):
         self.member_id_entry.delete(0, tk.END)
@@ -359,7 +376,7 @@ class LibraryApp:
         self.book_title_entry.insert(0, values[1])
         self.book_author_entry.insert(0, values[2])
         self.book_year_entry.insert(0, values[3])
-        self.book_category_entry.insert(0, values[4])
+        self.book_category_entry.set(values[4])
 
     def update_book(self):
         book_id = str(self.book_id_entry.get()).strip()
@@ -395,6 +412,9 @@ class LibraryApp:
         selected_item = self.books_tree.selection()
         if not selected_item:
             messagebox.showwarning("Warning", "Please select a book from the list to remove!")
+            return
+
+        if not messagebox.askyesno("Confirmation", "Are you sure you want to remove this book?"):
             return
 
         book_id = self.books_tree.item(selected_item[0])["values"][0]
@@ -494,6 +514,9 @@ class LibraryApp:
         selected_item = self.members_tree.selection()
         if not selected_item:
             messagebox.showwarning("Warning", "Please select a member from the list to remove!")
+            return
+
+        if not messagebox.askyesno("Confirmation", "Are you sure you want to remove this member?"):
             return
 
         member_id = self.members_tree.item(selected_item[0])["values"][0]
